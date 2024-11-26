@@ -23,7 +23,7 @@ st.markdown("""
     }
     /* Card styles */
     .card {
-        background-color: #393E46;
+        background-color: #fffff;
         padding: 15px;
         border-radius: 10px;
         text-align: center;
