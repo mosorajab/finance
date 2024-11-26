@@ -19,7 +19,7 @@ st.markdown("""
         font-weight: 600;
         margin-top: 10px;
         margin-bottom: 10px;
-        color: red;
+        color: blue;
     }
     /* Card styles */
     .card {
