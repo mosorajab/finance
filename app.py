@@ -52,8 +52,7 @@ st.markdown("""
         background-color: #008CBA;
         color: white;
         padding: 0.6rem 1.2rem;
-        margin: 0 auto;
-        display: block;
+        margin: 0 0.5rem;
         font-size: 16px;
         border: none;
         border-radius: 5px;
@@ -61,6 +60,11 @@ st.markdown("""
     }
     .currency-button:hover {
         background-color: #006f94;
+    }
+    .button-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
     }
     /* Responsive columns */
     @media (max-width: 1200px) {
@@ -112,15 +116,17 @@ def main():
     if 'currency' not in st.session_state:
         st.session_state['currency'] = 'USD'
 
-    # Currency Toggle Button at the Bottom
+    # Currency Selection Buttons at the Bottom
     st.markdown("---")
-    currency_button_label = f"Show Prices in {'ZAR' if st.session_state['currency'] == 'USD' else 'USD'}"
-    if st.button(currency_button_label, key='currency_button'):
-        # Toggle currency without re-running the entire script
-        if st.session_state['currency'] == 'USD':
-            st.session_state['currency'] = 'ZAR'
-        else:
-            st.session_state['currency'] = 'USD'
+    st.markdown('<div class="button-container">', unsafe_allow_html=True)
+    usd_button = st.button("Show Prices in USD", key='usd_button')
+    zar_button = st.button("Show Prices in ZAR", key='zar_button')
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    if usd_button:
+        st.session_state['currency'] = 'USD'
+    elif zar_button:
+        st.session_state['currency'] = 'ZAR'
 
     # Get all prices (cached)
     prices = get_all_prices()
