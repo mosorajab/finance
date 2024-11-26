@@ -2,7 +2,7 @@ import streamlit as st
 import yfinance as yf
 from datetime import datetime
 
-st.set_page_config(page_title="Asset Dashboard", page_icon="", layout="wide")
+st.set_page_config(page_title="Asset Dashboard", page_icon="📊", layout="wide")
 
 # Custom CSS for modern look compatible with dark mode
 st.markdown("""
@@ -70,7 +70,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("📈 Real-Time Asset Dashboard")
+st.title("Real-Time Asset Dashboard")
 
 def get_price(ticker):
     try:
