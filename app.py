@@ -45,7 +45,7 @@ st.markdown("""
     .chart-title {
         font-size: 16px;
         font-weight: 500;
-        color: #EEEEEE;
+        color: red;
         text-align: center;
         margin-bottom: -5px;
     }
