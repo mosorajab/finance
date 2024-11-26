@@ -70,7 +70,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("Real-Time Asset Dashboard")
+st.title("📈 Real-Time Asset Dashboard")
 
 def get_price(ticker):
     try:
@@ -84,7 +84,7 @@ def get_price(ticker):
         return None
 
 # Cache data with a TTL (Time To Live) of 60 seconds
-@st.cache_data(ttl=5)
+@st.cache_data(ttl=60)
 def get_all_prices():
     prices = {}
     tickers = ['MSTR', '^GSPC', 'GC=F', 'BTC-USD', 'ZAR=X', 'GBPZAR=X', 'EURZAR=X']
@@ -95,24 +95,16 @@ def get_all_prices():
 def main():
     prices = get_all_prices()
 
+    # Initialize currency in session state
+    if 'currency' not in st.session_state:
+        st.session_state['currency'] = 'USD'
+
     # Get USD to ZAR exchange rate
     usd_zar_rate = prices.get('ZAR=X')
 
-    # Asset Prices Section with Currency Selection
-    header_col1, header_col2 = st.columns([3, 1])
+    # Asset Prices Section
+    st.markdown('<div class="section-header">Asset Prices</div>', unsafe_allow_html=True)
 
-    with header_col1:
-        st.markdown('<div class="section-header">Asset Prices</div>', unsafe_allow_html=True)
-
-    with header_col2:
-        currency = st.selectbox(
-            '',
-            ('USD', 'ZAR'),
-            index=0,
-            key='currency_selectbox'
-        )
-
-    # Asset Prices Display
     asset_cols = st.columns(4)
     assets = [
         ('MicroStrategy (MSTR)', prices.get('MSTR')),
@@ -123,7 +115,7 @@ def main():
     for col, (label, price) in zip(asset_cols, assets):
         with col:
             if price is not None:
-                if currency == 'ZAR' and usd_zar_rate:
+                if st.session_state['currency'] == 'ZAR' and usd_zar_rate:
                     converted_price = price * usd_zar_rate
                     symbol = 'R'
                 else:
@@ -193,6 +185,16 @@ def main():
                 st.line_chart(data['Close'], height=150)
         else:
             st.warning(f"No historical data for {name}")
+
+    # Currency Selection at the Bottom
+    st.markdown('<div class="section-header">Currency Conversion</div>', unsafe_allow_html=True)
+    currency = st.selectbox(
+        'Select Currency for Asset Prices:',
+        ('USD', 'ZAR'),
+        index=0 if st.session_state['currency'] == 'USD' else 1,
+        key='currency_selectbox'
+    )
+    st.session_state['currency'] = currency
 
     # Footer
     st.markdown("---")
