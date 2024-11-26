@@ -1,6 +1,7 @@
 import streamlit as st
 import yfinance as yf
 from datetime import datetime
+import requests
 
 st.set_page_config(page_title="Asset Dashboard", page_icon="📈", layout="wide")
 
@@ -45,6 +46,29 @@ st.markdown("""
         text-align: center;
         margin-bottom: -10px;
     }
+    /* News section */
+    .news-card {
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .news-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: inherit;
+        margin-bottom: 5px;
+    }
+    .news-source {
+        font-size: 12px;
+        color: inherit;
+        margin-bottom: 5px;
+    }
+    .news-description {
+        font-size: 14px;
+        color: inherit;
+    }
     /* Remove Streamlit branding */
     footer {visibility: hidden;}
     /* Button styles */
@@ -57,6 +81,7 @@ st.markdown("""
         border: none;
         border-radius: 5px;
         cursor: pointer;
+        width: 100%;
     }
     .currency-button:hover {
         background-color: #006f94;
@@ -111,10 +136,35 @@ def get_all_prices():
         prices[ticker] = get_price(ticker)
     return prices
 
+# Fetch news articles related to the assets
+@st.cache_data(ttl=600)
+def fetch_news():
+    news_api_key = 'YOUR_NEWSAPI_KEY'  # Replace with your NewsAPI.org API key
+    assets = ['MicroStrategy', 'Bitcoin', 'S&P 500', 'Gold']
+    all_articles = []
+    for asset in assets:
+        url = f'https://newsapi.org/v2/everything?q={asset}&apiKey={news_api_key}&pageSize=1'
+        response = requests.get(url)
+        if response.status_code == 200:
+            articles = response.json().get('articles')
+            if articles:
+                all_articles.append(articles[0])
+    return all_articles
+
 def main():
     # Initialize currency in session state
     if 'currency' not in st.session_state:
         st.session_state['currency'] = 'USD'
+
+    # Currency Selection Buttons
+    st.markdown("---")
+    button_cols = st.columns(2)
+    with button_cols[0]:
+        if st.button("Show Prices in USD"):
+            st.session_state['currency'] = 'USD'
+    with button_cols[1]:
+        if st.button("Show Prices in ZAR"):
+            st.session_state['currency'] = 'ZAR'
 
     # Get all prices (cached)
     prices = get_all_prices()
@@ -160,7 +210,22 @@ def main():
                     </div>
                 """, unsafe_allow_html=True)
 
+    # News Section
+    st.markdown("---")
+    st.markdown("## 📰 Latest News")
+    news_articles = fetch_news()
+    for article in news_articles:
+        st.markdown(f"""
+            <div class="news-card">
+                <div class="news-title">{article['title']}</div>
+                <div class="news-source">Source: {article['source']['name']} | Published at: {article['publishedAt'][:10]}</div>
+                <div class="news-description">{article['description']}</div>
+                <a href="{article['url']}" target="_blank">Read more</a>
+            </div>
+        """, unsafe_allow_html=True)
+
     # Charts Section
+    st.markdown("---")
     chart_cols = st.columns(7)
     chart_assets = {
         'MSTR': 'MicroStrategy',
@@ -180,18 +245,6 @@ def main():
                 st.line_chart(data['Close'], height=120, use_container_width=True)
         else:
             st.warning(f"No data for {name}")
-
-    # Currency Selection Buttons at the Bottom
-    st.markdown("---")
-    st.markdown('<div class="button-container">', unsafe_allow_html=True)
-    usd_button = st.button("Show Prices in USD", key='usd_button')
-    zar_button = st.button("Show Prices in ZAR", key='zar_button')
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    if usd_button:
-        st.session_state['currency'] = 'USD'
-    elif zar_button:
-        st.session_state['currency'] = 'ZAR'
 
     # Footer
     last_updated = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
