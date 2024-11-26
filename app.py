@@ -1,6 +1,5 @@
 import streamlit as st
 import yfinance as yf
-import time
 from datetime import datetime
 
 st.set_page_config(page_title="Asset Dashboard", page_icon="📈", layout="wide")
@@ -9,7 +8,7 @@ st.set_page_config(page_title="Asset Dashboard", page_icon="📈", layout="wide"
 st.markdown("""
     <style>
     /* Root layout adjustments */
-    .main {
+    html, body, [class*="css"]  {
         background-color: #1E1E1E;
         color: #FFFFFF;
         font-family: 'Roboto', sans-serif;
@@ -18,18 +17,18 @@ st.markdown("""
     .section-header {
         font-size: 26px;
         font-weight: 600;
-        margin-top: 30px;
+        margin-top: 10px;
         margin-bottom: 10px;
         color: #00ADB5;
     }
     /* Card styles */
     .card {
         background-color: #393E46;
-        padding: 20px;
+        padding: 15px;
         border-radius: 10px;
         text-align: center;
         margin-bottom: 20px;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
     }
     .card h3 {
         margin: 0;
@@ -37,7 +36,7 @@ st.markdown("""
         color: #EEEEEE;
     }
     .card p {
-        margin: 0;
+        margin: 5px 0 0 0;
         font-size: 24px;
         font-weight: bold;
         color: #FFD369;
@@ -48,13 +47,18 @@ st.markdown("""
         font-weight: 500;
         color: #EEEEEE;
         text-align: center;
-        margin-bottom: -10px;
+        margin-bottom: -5px;
     }
     /* Responsive columns */
     @media (max-width: 768px) {
         .stColumn > div {
             width: 100% !important;
         }
+    }
+    /* Dropdown styling */
+    .stSelectbox label {
+        font-size: 16px;
+        color: #FFFFFF;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -73,12 +77,10 @@ def get_price(ticker):
         data = yf.Ticker(ticker)
         df = data.history(period='1d', interval='1m')
         if df.empty:
-            st.error(f"No data found for ticker {ticker}")
             return None
         current_price = df['Close'][-1]
         return current_price
-    except Exception as e:
-        st.error(f"Error fetching data for {ticker}: {e}")
+    except Exception:
         return None
 
 # Cache data with a TTL (Time To Live) of 60 seconds
@@ -96,16 +98,21 @@ def main():
     # Get USD to ZAR exchange rate
     usd_zar_rate = prices.get('ZAR=X')
 
-    # Currency Selection
-    currency = st.selectbox(
-        'Select Currency for Asset Prices:',
-        ('USD', 'ZAR'),
-        index=0
-    )
+    # Asset Prices Section with Currency Selection
+    header_col1, header_col2 = st.columns([3, 1])
 
-    # Asset Prices Section
-    st.markdown('<div class="section-header">Asset Prices</div>', unsafe_allow_html=True)
+    with header_col1:
+        st.markdown('<div class="section-header">Asset Prices</div>', unsafe_allow_html=True)
 
+    with header_col2:
+        currency = st.selectbox(
+            '',
+            ('USD', 'ZAR'),
+            index=0,
+            key='currency_selectbox'
+        )
+
+    # Asset Prices Display
     asset_cols = st.columns(4)
     assets = [
         ('MicroStrategy (MSTR)', prices.get('MSTR')),
