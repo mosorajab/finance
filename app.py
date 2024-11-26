@@ -116,18 +116,6 @@ def main():
     if 'currency' not in st.session_state:
         st.session_state['currency'] = 'USD'
 
-    # Currency Selection Buttons at the Bottom
-    st.markdown("---")
-    st.markdown('<div class="button-container">', unsafe_allow_html=True)
-    usd_button = st.button("Show Prices in USD", key='usd_button')
-    zar_button = st.button("Show Prices in ZAR", key='zar_button')
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    if usd_button:
-        st.session_state['currency'] = 'USD'
-    elif zar_button:
-        st.session_state['currency'] = 'ZAR'
-
     # Get all prices (cached)
     prices = get_all_prices()
 
@@ -192,6 +180,18 @@ def main():
                 st.line_chart(data['Close'], height=120, use_container_width=True)
         else:
             st.warning(f"No data for {name}")
+
+    # Currency Selection Buttons at the Bottom
+    st.markdown("---")
+    st.markdown('<div class="button-container">', unsafe_allow_html=True)
+    usd_button = st.button("Show Prices in USD", key='usd_button')
+    zar_button = st.button("Show Prices in ZAR", key='zar_button')
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    if usd_button:
+        st.session_state['currency'] = 'USD'
+    elif zar_button:
+        st.session_state['currency'] = 'ZAR'
 
     # Footer
     last_updated = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
