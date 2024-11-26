@@ -64,11 +64,11 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # Load custom fonts
-st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap');
-    </style>
-    """, unsafe_allow_html=True)
+# st.markdown("""
+#     <style>
+#     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap');
+#     </style>
+#     """, unsafe_allow_html=True)
 
 st.title("📈 Real-Time Asset Dashboard")
 
