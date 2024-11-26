@@ -33,7 +33,7 @@ st.markdown("""
     .card h3 {
         margin: 0;
         font-size: 18px;
-        color: #EEEEEE;
+        color: red;
     }
     .card p {
         margin: 5px 0 0 0;
