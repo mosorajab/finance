@@ -1,6 +1,7 @@
 import streamlit as st
 import yfinance as yf
 from datetime import datetime
+import feedparser  # Added import for feedparser
 
 st.set_page_config(page_title="Asset Dashboard", page_icon="📈", layout="wide")
 
@@ -158,22 +159,26 @@ def get_all_prices():
         prices[ticker] = get_price(ticker)
     return prices
 
-# Fetch news articles related to the assets using yfinance
+# Fetch news articles using feedparser and Yahoo Finance RSS feeds
 @st.cache_data(ttl=600)
 def fetch_news():
-    assets = ['MSTR', 'BTC-USD', '^GSPC', 'GC=F']
+    feeds = {
+        'Bitcoin': 'https://feeds.finance.yahoo.com/rss/2.0/headline?s=BTC-USD&region=US&lang=en-US',
+        'MicroStrategy': 'https://feeds.finance.yahoo.com/rss/2.0/headline?s=MSTR&region=US&lang=en-US',
+        'Gold': 'https://feeds.finance.yahoo.com/rss/2.0/headline?s=GC=F&region=US&lang=en-US'
+    }
     all_articles = []
-    for symbol in assets:
-        ticker = yf.Ticker(symbol)
-        news_items = ticker.news
-        if news_items:
-            # Get the latest news article
-            article = news_items[0]
+    for asset, feed_url in feeds.items():
+        feed = feedparser.parse(feed_url)
+        if feed.entries:
+            article = feed.entries[0]
+            published_time = datetime.strptime(article.get('published', '')[:25], '%a, %d %b %Y %H:%M:%S')
             all_articles.append({
                 'title': article.get('title', 'No Title'),
-                'publisher': article.get('publisher', 'Unknown Source'),
+                'source': 'Yahoo Finance',
+                'description': article.get('summary', ''),
                 'link': article.get('link', '#'),
-                'providerPublishTime': datetime.fromtimestamp(article.get('providerPublishTime', 0)).strftime('%Y-%m-%d %H:%M:%S')
+                'publishedAt': published_time.strftime('%Y-%m-%d %H:%M:%S')
             })
     return all_articles
 
@@ -230,7 +235,8 @@ def main():
         st.markdown(f"""
             <div class="news-card">
                 <div class="news-title">{article['title']}</div>
-                <div class="news-source">Source: {article['publisher']} | Published at: {article['providerPublishTime']}</div>
+                <div class="news-source">Source: {article['source']} | Published at: {article['publishedAt']}</div>
+                <div class="news-description">{article['description']}</div>
                 <a href="{article['link']}" target="_blank">Read more</a>
             </div>
         """, unsafe_allow_html=True)
