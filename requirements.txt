@@ -1,2 +1,5 @@
 streamlit
 yfinance
+yahoo_fin
+requests
+requests_html
