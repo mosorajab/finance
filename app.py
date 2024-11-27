@@ -1,7 +1,6 @@
 import streamlit as st
 import yfinance as yf
 from datetime import datetime
-import requests
 
 st.set_page_config(page_title="Asset Dashboard", page_icon="📈", layout="wide")
 
@@ -25,7 +24,7 @@ st.markdown("""
         border-radius: 8px;
         text-align: center;
         margin-bottom: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(0, 0, 0, 0.2); /* Updated border for light mode */
     }
     .card h3 {
         margin: 0;
@@ -52,7 +51,7 @@ st.markdown("""
         padding: 15px;
         border-radius: 8px;
         margin-bottom: 15px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(0, 0, 0, 0.2); /* Updated border for light mode */
     }
     .news-title {
         font-size: 16px;
@@ -73,18 +72,24 @@ st.markdown("""
     footer {visibility: hidden;}
     /* Button styles */
     .currency-button {
-        background-color: #008CBA;
+        background-color: #4CAF50;
         color: white;
         padding: 0.6rem 1.2rem;
         margin: 0 0.5rem;
         font-size: 16px;
+        font-weight: bold;
         border: none;
         border-radius: 5px;
         cursor: pointer;
         width: 100%;
+        transition: background-color 0.3s, transform 0.1s;
     }
     .currency-button:hover {
-        background-color: #006f94;
+        background-color: #45a049;
+        transform: translateY(-2px);
+    }
+    .currency-button:active {
+        transform: translateY(0);
     }
     .button-container {
         display: flex;
@@ -114,6 +119,23 @@ st.markdown("""
 
 st.title("📈 Real-Time Asset Dashboard")
 
+# Initialize currency in session state
+if 'currency' not in st.session_state:
+    st.session_state['currency'] = 'USD'
+
+# Currency Selection Buttons at the Bottom
+st.markdown("---")
+st.markdown('<div class="button-container">', unsafe_allow_html=True)
+with st.container():
+    button_cols = st.columns(2)
+    with button_cols[0]:
+        if st.button("Show Prices in USD", key='usd_button'):
+            st.session_state['currency'] = 'USD'
+    with button_cols[1]:
+        if st.button("Show Prices in ZAR", key='zar_button'):
+            st.session_state['currency'] = 'ZAR'
+st.markdown('</div>', unsafe_allow_html=True)
+
 # Cache data with a TTL of 600 seconds (10 minutes)
 @st.cache_data(ttl=600)
 def get_price(ticker):
@@ -136,36 +158,26 @@ def get_all_prices():
         prices[ticker] = get_price(ticker)
     return prices
 
-# Fetch news articles related to the assets
+# Fetch news articles related to the assets using yfinance
 @st.cache_data(ttl=600)
 def fetch_news():
-    news_api_key = 'YOUR_NEWSAPI_KEY'  # Replace with your NewsAPI.org API key
-    assets = ['MicroStrategy', 'Bitcoin', 'S&P 500', 'Gold']
+    assets = ['MSTR', 'BTC-USD', '^GSPC', 'GC=F']
     all_articles = []
-    for asset in assets:
-        url = f'https://newsapi.org/v2/everything?q={asset}&apiKey={news_api_key}&pageSize=1'
-        response = requests.get(url)
-        if response.status_code == 200:
-            articles = response.json().get('articles')
-            if articles:
-                all_articles.append(articles[0])
+    for symbol in assets:
+        ticker = yf.Ticker(symbol)
+        news_items = ticker.news
+        if news_items:
+            # Get the latest news article
+            article = news_items[0]
+            all_articles.append({
+                'title': article.get('title', 'No Title'),
+                'publisher': article.get('publisher', 'Unknown Source'),
+                'link': article.get('link', '#'),
+                'providerPublishTime': datetime.fromtimestamp(article.get('providerPublishTime', 0)).strftime('%Y-%m-%d %H:%M:%S')
+            })
     return all_articles
 
 def main():
-    # Initialize currency in session state
-    if 'currency' not in st.session_state:
-        st.session_state['currency'] = 'USD'
-
-    # Currency Selection Buttons
-    st.markdown("---")
-    button_cols = st.columns(2)
-    with button_cols[0]:
-        if st.button("Show Prices in USD"):
-            st.session_state['currency'] = 'USD'
-    with button_cols[1]:
-        if st.button("Show Prices in ZAR"):
-            st.session_state['currency'] = 'ZAR'
-
     # Get all prices (cached)
     prices = get_all_prices()
 
@@ -218,9 +230,8 @@ def main():
         st.markdown(f"""
             <div class="news-card">
                 <div class="news-title">{article['title']}</div>
-                <div class="news-source">Source: {article['source']['name']} | Published at: {article['publishedAt'][:10]}</div>
-                <div class="news-description">{article['description']}</div>
-                <a href="{article['url']}" target="_blank">Read more</a>
+                <div class="news-source">Source: {article['publisher']} | Published at: {article['providerPublishTime']}</div>
+                <a href="{article['link']}" target="_blank">Read more</a>
             </div>
         """, unsafe_allow_html=True)
 
