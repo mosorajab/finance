@@ -18,13 +18,12 @@ st.markdown(
     /* General styles */
     body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: var(--background-color);
     }
     /* Header */
     .header {
-        background-color: var(--primary-color);
+        background-color: #2c3e50;
         padding: 1rem;
-        color: var(--header-text-color);
+        color: #ffffff;
         font-size: 1.5rem;
         font-weight: bold;
         margin-bottom: 20px;
@@ -38,33 +37,41 @@ st.markdown(
     .main-content {
         margin-top: 20px;
     }
+    /* CSS Variables for Border Colors */
+    :root {
+        --border-color: #dddddd;  /* Light mode border color */
+    }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --border-color: #444444;  /* Dark mode border color */
+        }
+    }
     /* Card styles */
     .card {
-        background-color: var(--card-background-color);
         padding: 20px;
         border-radius: 8px;
         margin-bottom: 20px;
-        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         text-align: center;
     }
     .card h3 {
         margin: 0;
         font-size: 18px;
-        color: var(--text-color);
     }
     .card p {
         margin: 10px 0 0 0;
         font-size: 24px;
         font-weight: bold;
-        color: #27ae60;
+        color: #27ae60;  /* You can adjust this color if needed */
     }
     /* News section */
     .news-card {
-        background-color: var(--card-background-color);
         padding: 15px;
         border-radius: 8px;
         margin-bottom: 15px;
-        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         display: flex;
         flex-direction: column;
         height: 300px;
@@ -72,23 +79,19 @@ st.markdown(
     .news-title {
         font-size: 16px;
         font-weight: bold;
-        color: var(--text-color);
         margin-bottom: 5px;
     }
     .news-source {
         font-size: 12px;
-        color: var(--secondary-text-color);
         margin-bottom: 10px;
     }
     .news-description {
         font-size: 14px;
-        color: var(--text-color);
         flex-grow: 1;
         margin-bottom: 10px;
         overflow-y: auto;
     }
     .news-card a {
-        color: #2980b9;
         text-decoration: none;
         font-weight: bold;
         align-self: flex-start;
@@ -99,28 +102,6 @@ st.markdown(
     /* Footer */
     footer {
         visibility: hidden;
-    }
-    /* Light mode variables */
-    :root {
-        --background-color: #f5f5f5;
-        --primary-color: #2c3e50;
-        --header-text-color: #ffffff;
-        --text-color: #333333; /* Dark text for light mode */
-        --secondary-text-color: #555555;
-        --card-background-color: #ffffff;
-        --card-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    /* Dark mode variables */
-    @media (prefers-color-scheme: dark) {
-        :root {
-            --background-color: #1e1e1e;
-            --primary-color: #2c3e50;
-            --header-text-color: #ffffff;
-            --text-color: #ffffff; /* Light text for dark mode */
-            --secondary-text-color: #bdc3c7;
-            --card-background-color: #2c2c2c;
-            --card-shadow: 0 2px 5px rgba(0,0,0,0.5);
-        }
     }
     </style>
     """,
@@ -241,6 +222,16 @@ def main():
                     """,
                     unsafe_allow_html=True,
                 )
+            else:
+                st.markdown(
+                    f"""
+                    <div class="card">
+                        <h3>{label}</h3>
+                        <p>N/A</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
     # Exchange Rates
     st.markdown("### **Exchange Rates**")
@@ -258,6 +249,16 @@ def main():
                     <div class="card">
                         <h3>{label}</h3>
                         <p>R{price:,.2f}</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(
+                    f"""
+                    <div class="card">
+                        <h3>{label}</h3>
+                        <p>N/A</p>
                     </div>
                     """,
                     unsafe_allow_html=True,
