@@ -4,3 +4,4 @@ yahoo_fin
 requests
 requests_html
 feedparser
+altair
