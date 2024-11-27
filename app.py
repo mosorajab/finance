@@ -1,131 +1,125 @@
 import streamlit as st
 import yfinance as yf
 from datetime import datetime
-import feedparser  # Used for fetching RSS feeds
+import feedparser
+import altair as alt
 
 st.set_page_config(
-    page_title="Asset Dashboard",
-    page_icon="📈",
+    page_title="Financial Dashboard",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
-# Custom CSS for modern look compatible with both light and dark modes
+# Custom CSS
 st.markdown(
     """
     <style>
-    /* Root layout adjustments */
-    html, body, [class*="css"]  {
-        background-color: transparent;
-        color: inherit;
-        font-family: 'Lato', sans-serif;
+    /* General styles */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--background-color);
     }
-    /* Remove padding around main content */
-    .block-container {
-        padding: 1rem 2rem;
-    }
-    /* Sidebar styling */
-    .css-1lcbmhc {
-        background-color: #f0f2f6 !important;
-    }
-    /* Sidebar title */
-    .sidebar .sidebar-content {
-        padding-top: 1rem;
-    }
-    /* Button styles in sidebar */
-    .sidebar .stButton button {
-        background-color: #4CAF50;
-        color: white;
-        padding: 0.6rem 1.2rem;
-        margin: 0.5rem 0;
-        font-size: 16px;
+    /* Header */
+    .header {
+        background-color: var(--primary-color);
+        padding: 1rem;
+        color: var(--header-text-color);
+        font-size: 1.5rem;
         font-weight: bold;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        width: 100%;
-        transition: background-color 0.3s, transform 0.1s;
+        margin-bottom: 20px;
     }
-    .sidebar .stButton button:hover {
-        background-color: #45a049;
-        transform: translateY(-2px);
+    .header img {
+        height: 40px;
+        margin-right: 10px;
+        vertical-align: middle;
+    }
+    /* Main content */
+    .main-content {
+        margin-top: 20px;
     }
     /* Card styles */
     .card {
-        background-color: rgba(255, 255, 255, 0.1);
-        padding: 15px;
+        background-color: var(--card-background-color);
+        padding: 20px;
         border-radius: 8px;
-        text-align: center;
         margin-bottom: 20px;
-        border: 1px solid rgba(0, 0, 0, 0.2);
+        box-shadow: var(--card-shadow);
+        text-align: center;
     }
     .card h3 {
         margin: 0;
-        font-size: 16px;
-        color: inherit;
+        font-size: 18px;
+        color: var(--text-color);
     }
     .card p {
-        margin: 5px 0 0 0;
-        font-size: 22px;
+        margin: 10px 0 0 0;
+        font-size: 24px;
         font-weight: bold;
-        color: inherit;
-    }
-    /* Chart titles */
-    .chart-title {
-        font-size: 14px;
-        font-weight: 500;
-        color: inherit;
-        text-align: center;
-        margin-bottom: -10px;
+        color: #27ae60;
     }
     /* News section */
     .news-card {
-        background-color: rgba(255, 255, 255, 0.05);
+        background-color: var(--card-background-color);
         padding: 15px;
         border-radius: 8px;
         margin-bottom: 15px;
-        border: 1px solid rgba(0, 0, 0, 0.2);
-        height: 300px;
+        box-shadow: var(--card-shadow);
         display: flex;
         flex-direction: column;
+        height: 300px;
     }
     .news-title {
         font-size: 16px;
         font-weight: bold;
-        color: inherit;
+        color: var(--text-color);
         margin-bottom: 5px;
     }
     .news-source {
         font-size: 12px;
-        color: inherit;
-        margin-bottom: 5px;
+        color: var(--secondary-text-color);
+        margin-bottom: 10px;
     }
     .news-description {
         font-size: 14px;
-        color: inherit;
+        color: var(--text-color);
         flex-grow: 1;
+        margin-bottom: 10px;
         overflow-y: auto;
     }
-    .news-card a.read-more {
-        margin-top: 10px;
-        color: #4CAF50;
+    .news-card a {
+        color: #2980b9;
         text-decoration: none;
         font-weight: bold;
+        align-self: flex-start;
     }
-    .news-card a.read-more:hover {
-        color: #45a049;
+    .news-card a:hover {
+        text-decoration: underline;
     }
-    /* Remove Streamlit branding */
-    footer {visibility: hidden;}
-    /* Responsive columns */
-    @media (max-width: 1200px) {
-        .stApp {
-            zoom: 80%;
-        }
+    /* Footer */
+    footer {
+        visibility: hidden;
     }
-    @media (max-width: 768px) {
-        .stApp {
-            zoom: 70%;
+    /* Light mode variables */
+    :root {
+        --background-color: #f5f5f5;
+        --primary-color: #2c3e50;
+        --header-text-color: #ffffff;
+        --text-color: #333333; /* Dark text for light mode */
+        --secondary-text-color: #555555;
+        --card-background-color: #ffffff;
+        --card-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    /* Dark mode variables */
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --background-color: #1e1e1e;
+            --primary-color: #2c3e50;
+            --header-text-color: #ffffff;
+            --text-color: #ffffff; /* Light text for dark mode */
+            --secondary-text-color: #bdc3c7;
+            --card-background-color: #2c2c2c;
+            --card-shadow: 0 2px 5px rgba(0,0,0,0.5);
         }
     }
     </style>
@@ -133,29 +127,26 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Load custom fonts
+# Header
 st.markdown(
     """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap');
-    </style>
+    <div class="header">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/stock-share.png"/>
+        Financial Dashboard
+    </div>
     """,
     unsafe_allow_html=True,
 )
-
-st.title("📈 Real-Time Asset Dashboard")
 
 # Initialize currency in session state
 if "currency" not in st.session_state:
     st.session_state["currency"] = "USD"
 
-# Currency Selection Buttons in Sidebar
+# Currency Selection in Sidebar
 with st.sidebar:
-    st.markdown("### Currency Selection")
-    if st.button("Show Prices in USD"):
-        st.session_state["currency"] = "USD"
-    if st.button("Show Prices in ZAR"):
-        st.session_state["currency"] = "ZAR"
+    st.markdown("## Currency Selection")
+    currency = st.radio("", ("USD", "ZAR"))
+    st.session_state["currency"] = currency
 
 # Cache data with a TTL of 600 seconds (10 minutes)
 @st.cache_data(ttl=600)
@@ -170,7 +161,7 @@ def get_price(ticker):
     except Exception:
         return None
 
-# Cache all prices to prevent re-fetching on each interaction
+# Fetch all prices
 @st.cache_data(ttl=600)
 def get_all_prices():
     prices = {}
@@ -179,7 +170,7 @@ def get_all_prices():
         prices[ticker] = get_price(ticker)
     return prices
 
-# Fetch news articles using feedparser and Yahoo Finance RSS feeds
+# Fetch news articles
 @st.cache_data(ttl=600)
 def fetch_news():
     feeds = {
@@ -211,22 +202,18 @@ def fetch_news():
     return all_articles
 
 def main():
-    # Get all prices (cached)
+    st.markdown('<div class="main-content">', unsafe_allow_html=True)
+
+    # Prices Section
+    st.markdown("### **Current Prices**")
     prices = get_all_prices()
-
-    # Get USD to ZAR exchange rate
     usd_zar_rate = prices.get("ZAR=X")
-
-    # Asset Prices Display
-    asset_cols = st.columns(7)
+    asset_cols = st.columns(4)
     assets = [
         ("MicroStrategy", prices.get("MSTR")),
         ("Bitcoin", prices.get("BTC-USD")),
-        ("S&P 500", prices.get("^GSPC")),
         ("Gold", prices.get("GC=F")),
-        ("USD/ZAR", usd_zar_rate),
-        ("GBP/ZAR", prices.get("GBPZAR=X")),
-        ("EUR/ZAR", prices.get("EURZAR=X")),
+        ("S&P 500", prices.get("^GSPC")),
     ]
 
     for col, (label, price) in zip(asset_cols, assets):
@@ -235,13 +222,13 @@ def main():
                 if (
                     st.session_state["currency"] == "ZAR"
                     and usd_zar_rate
-                    and label not in ["USD/ZAR", "GBP/ZAR", "EUR/ZAR"]
+                    and label != "S&P 500"
                 ):
                     converted_price = price * usd_zar_rate
                     symbol = "R"
-                elif label in ["USD/ZAR", "GBP/ZAR", "EUR/ZAR"]:
+                elif label == "S&P 500":
                     converted_price = price
-                    symbol = "R"
+                    symbol = "$"
                 else:
                     converted_price = price
                     symbol = "$"
@@ -251,25 +238,35 @@ def main():
                         <h3>{label}</h3>
                         <p>{symbol}{converted_price:,.2f}</p>
                     </div>
-                """,
+                    """,
                     unsafe_allow_html=True,
                 )
-            else:
+
+    # Exchange Rates
+    st.markdown("### **Exchange Rates**")
+    fx_cols = st.columns(3)
+    fx_assets = [
+        ("USD/ZAR", usd_zar_rate),
+        ("GBP/ZAR", prices.get("GBPZAR=X")),
+        ("EUR/ZAR", prices.get("EURZAR=X")),
+    ]
+    for col, (label, price) in zip(fx_cols, fx_assets):
+        with col:
+            if price is not None:
                 st.markdown(
                     f"""
                     <div class="card">
                         <h3>{label}</h3>
-                        <p>N/A</p>
+                        <p>R{price:,.2f}</p>
                     </div>
-                """,
+                    """,
                     unsafe_allow_html=True,
                 )
 
     # News Section
-    st.markdown("---")
-    st.markdown("## 📰 Latest News")
+    st.markdown("### **Latest News**")
     news_articles = fetch_news()
-    news_cols = st.columns(len(news_articles))
+    news_cols = st.columns(3)
     for idx, article in enumerate(news_articles):
         with news_cols[idx]:
             st.markdown(
@@ -278,37 +275,42 @@ def main():
                     <div class="news-title">{article['title']}</div>
                     <div class="news-source">Source: {article['source']} | Published at: {article['publishedAt']}</div>
                     <div class="news-description">{article['description']}</div>
-                    <a href="{article['link']}" target="_blank" class="read-more">Read more</a>
+                    <a href="{article['link']}" target="_blank">Read more</a>
                 </div>
-            """,
+                """,
                 unsafe_allow_html=True,
             )
 
     # Charts Section
-    st.markdown("---")
-    chart_cols = st.columns(7)
+    st.markdown("### **Asset Performance Charts**")
     chart_assets = {
         "MSTR": "MicroStrategy",
         "BTC-USD": "Bitcoin",
         "^GSPC": "S&P 500",
         "GC=F": "Gold",
-        "ZAR=X": "USD/ZAR",
-        "GBPZAR=X": "GBP/ZAR",
-        "EURZAR=X": "EUR/ZAR",
     }
-
+    chart_cols = st.columns(2)
     for idx, (ticker, name) in enumerate(chart_assets.items()):
-        data = yf.Ticker(ticker).history(period="1mo")
+        data = yf.Ticker(ticker).history(period="3mo")
         if not data.empty:
-            with chart_cols[idx]:
-                st.markdown(
-                    f"<div class='chart-title'>{name}</div>", unsafe_allow_html=True
-                )
-                st.line_chart(
-                    data["Close"], height=120, use_container_width=True
-                )
+            data.reset_index(inplace=True)
+            line_chart = alt.Chart(data).mark_line().encode(
+                x="Date:T",
+                y="Close:Q",
+                tooltip=["Date:T", "Close:Q"]
+            ).properties(
+                title=name
+            ).configure_title(
+                fontSize=16,
+                anchor='start',
+                color='#333'
+            ).interactive()
+            with chart_cols[idx % 2]:
+                st.altair_chart(line_chart, use_container_width=True)
         else:
             st.warning(f"No data for {name}")
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
     # Footer
     st.markdown("---")
