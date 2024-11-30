@@ -15,36 +15,31 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    /* General styles */
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    /* Header */
+    /* Use Streamlit's default text color */
     .header {
-        background-color: #2c3e50;
-        padding: 1rem;
-        color: #ffffff;
-        font-size: 1.5rem;
+        padding: 1rem 0;
+        font-size: 2rem;
         font-weight: bold;
         margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        color: var(--text-color);
     }
     .header img {
         height: 40px;
         margin-right: 10px;
         vertical-align: middle;
+        filter: brightness(0) invert(0);
+    }
+    /* Adjust icon filter for dark mode */
+    @media (prefers-color-scheme: dark) {
+        .header img {
+            filter: brightness(1) invert(1);
+        }
     }
     /* Main content */
     .main-content {
         margin-top: 20px;
-    }
-    /* CSS Variables for Border Colors */
-    :root {
-        --border-color: #dddddd;  /* Light mode border color */
-    }
-    @media (prefers-color-scheme: dark) {
-        :root {
-            --border-color: #444444;  /* Dark mode border color */
-        }
     }
     /* Card styles */
     .card {
@@ -52,18 +47,20 @@ st.markdown(
         border-radius: 8px;
         margin-bottom: 20px;
         border: 1px solid var(--border-color);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        box-shadow: var(--shadow);
         text-align: center;
+        background-color: var(--background-color);
     }
     .card h3 {
         margin: 0;
         font-size: 18px;
+        color: var(--text-color);
     }
     .card p {
         margin: 10px 0 0 0;
         font-size: 24px;
         font-weight: bold;
-        color: #27ae60;  /* You can adjust this color if needed */
+        color: #27ae60;
     }
     /* News section */
     .news-card {
@@ -71,33 +68,51 @@ st.markdown(
         border-radius: 8px;
         margin-bottom: 15px;
         border: 1px solid var(--border-color);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        box-shadow: var(--shadow);
         display: flex;
         flex-direction: column;
         height: 300px;
+        background-color: var(--background-color);
     }
     .news-title {
         font-size: 16px;
         font-weight: bold;
         margin-bottom: 5px;
+        color: var(--text-color);
     }
     .news-source {
         font-size: 12px;
         margin-bottom: 10px;
+        color: var(--text-color);
     }
     .news-description {
         font-size: 14px;
         flex-grow: 1;
         margin-bottom: 10px;
         overflow-y: auto;
+        color: var(--text-color);
     }
     .news-card a {
         text-decoration: none;
         font-weight: bold;
         align-self: flex-start;
+        color: #2980b9;
     }
     .news-card a:hover {
         text-decoration: underline;
+    }
+    /* Variables */
+    :root {
+        --border-color: #e6e6e6;
+        --shadow: 0 2px 5px rgba(0,0,0,0.1);
+        --background-color: var(--background-color);
+        --text-color: var(--text-color);
+    }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --border-color: #444444;
+            --shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
     }
     /* Footer */
     footer {
@@ -112,7 +127,7 @@ st.markdown(
 st.markdown(
     """
     <div class="header">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/stock-share.png"/>
+        <img src="https://img.icons8.com/ios-filled/50/000000/stock-share.png"/>
         Financial Dashboard
     </div>
     """,
@@ -200,16 +215,9 @@ def main():
     for col, (label, price) in zip(asset_cols, assets):
         with col:
             if price is not None:
-                if (
-                    st.session_state["currency"] == "ZAR"
-                    and usd_zar_rate
-                    and label != "S&P 500"
-                ):
+                if st.session_state["currency"] == "ZAR" and usd_zar_rate:
                     converted_price = price * usd_zar_rate
                     symbol = "R"
-                elif label == "S&P 500":
-                    converted_price = price
-                    symbol = "$"
                 else:
                     converted_price = price
                     symbol = "$"
@@ -304,7 +312,12 @@ def main():
             ).configure_title(
                 fontSize=16,
                 anchor='start',
-                color='#333'
+                color='var(--text-color)'
+            ).configure_axis(
+                labelColor='var(--text-color)',
+                titleColor='var(--text-color)'
+            ).configure_view(
+                strokeWidth=0
             ).interactive()
             with chart_cols[idx % 2]:
                 st.altair_chart(line_chart, use_container_width=True)
@@ -321,3 +334,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
